@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { ListingStatus, WasteType } from "@/app/generated/prisma/client";
+import { ListingStatus, WasteType } from "@/app/generated/prisma";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/authz";
 import { v2 as cloudinary } from "cloudinary";

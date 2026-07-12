@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { Role } from "@/app/generated/prisma/client";
+import { Role } from "@/app/generated/prisma";
 import bcrypt from "bcryptjs";
 import { consumeToken, createToken } from "@/lib/tokens";
 import { activationEmailHtml, passwordResetEmailHtml, sendEmail } from "@/lib/email";
