@@ -1,12 +1,13 @@
+// app/api/sensor/route.ts
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
-// app/api/sensor/route.ts
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { siteId, score } = body;
 
+    // Validate inputs
     if (!siteId || typeof score !== "number") {
       return NextResponse.json(
         { error: "siteId and numeric score are required" },
@@ -20,36 +21,47 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check if site exists
     const site = await prisma.dumpSite.findUnique({ 
       where: { id: siteId },
-      select: { id: true } // Just check existence
+      select: { id: true } // Only select id for existence check
     });
     
     if (!site) {
       return NextResponse.json({ error: "Unknown siteId" }, { status: 404 });
     }
 
-    // Convert score to Int if needed
-    const pollutionScore = Math.round(score); // Ensure it's an integer
+    // Ensure score is an integer for pollutionScore
+    const pollutionScore = Math.round(score);
 
+    // Use transaction to create reading and update site
     const [reading] = await prisma.$transaction([
       prisma.sensorReading.create({ 
-        data: { siteId, score } // score might be Float
+        data: { 
+          siteId, 
+          score // If your sensorReading uses Float
+        } 
       }),
       prisma.dumpSite.update({
         where: { id: siteId },
-        data: { pollutionScore: pollutionScore }, // Int
+        data: { pollutionScore }, // Int
       }),
     ]);
 
-    return NextResponse.json({ ok: true, reading }, { status: 201 });
+    return NextResponse.json({ 
+      ok: true, 
+      reading,
+      pollutionScore 
+    }, { status: 201 });
   } catch (err) {
     console.error("sensor ingest error", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Internal error",
+      details: err instanceof Error ? err.message : String(err)
+    }, { status: 500 });
   }
 }
 
-// Optional: list recent readings for a site, e.g. for a small chart on the map popup
 export async function GET(req: NextRequest) {
   const siteId = req.nextUrl.searchParams.get("siteId");
   if (!siteId) {
