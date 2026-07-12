@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Plus, UploadCloud, Image as ImageIcon } from 'lucide-react';
 import { createListing } from '@/app/actions/listings';
-import { WasteType } from '../generated/prisma/enums';
+import { WasteType } from '@/app/generated/prisma/enums';
 
 export default function CreateListingModal() {
   const [open, setOpen] = useState(false);
