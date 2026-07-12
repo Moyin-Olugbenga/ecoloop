@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { consumeToken, createToken } from "@/lib/tokens";
 import { activationEmailHtml, passwordResetEmailHtml, sendEmail } from "@/lib/email";
 import { getSession } from "next-auth/react";
-import { Role } from "@/lib/types";
+import { Role } from "@prisma/client";
 
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/authz";
+import { Listing } from "@prisma/client";
 
 export async function getSellerDashboard() {
   const user = await requireRole("SELLER", "ADMIN");
@@ -13,10 +14,10 @@ export async function getSellerDashboard() {
   });
 
   return {
-    listed: listings.filter((l) => l.status === "LISTED"),
-    claimed: listings.filter((l) => l.status === "CLAIMED"),
-    sold: listings.filter((l) => l.status === "SOLD"),
-  };
+    listed: listings.filter((l: Listing) => l.status === "LISTED"),
+    claimed: listings.filter((l: Listing) => l.status === "CLAIMED"),
+    sold: listings.filter((l: Listing) => l.status === "SOLD"),
+    };
 }
 
 // --- Middleman: what they've claimed (unsorted) and batches they've created ---
