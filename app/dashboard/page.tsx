@@ -7,7 +7,6 @@ import {
   getSchoolDashboard,
 } from "@/app/actions/dashboard";
 import DashboardShell from "./DashboardShell";
-import { prisma } from "@/lib/db";
 import { getCurrentUser } from "../actions/user";
 
 export const dynamic = "force-dynamic";

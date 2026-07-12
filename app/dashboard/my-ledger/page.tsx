@@ -1,9 +1,7 @@
 import React from 'react';
-import { prisma } from '@/lib/db';
 import Sidebar from '@/components/Sidebar';
 import { notFound, redirect } from 'next/navigation';
 import { MapPin, ArrowUpRight, ArrowDownLeft, Edit2 } from 'lucide-react';
-import { auth } from '@/auth';
 import Link from 'next/link';
 import { getListings, getUserListing } from '@/app/actions/listings';
 import { getCurrentUser } from '@/app/actions/user';

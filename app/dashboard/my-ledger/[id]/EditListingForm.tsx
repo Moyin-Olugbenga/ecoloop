@@ -4,7 +4,8 @@ import React, { useState, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, UploadCloud, CheckCircle } from 'lucide-react';
 import { updateListing } from '@/app/actions/listings';
-import { WasteType } from '@/app/generated/prisma/enums';
+
+const WasteType = ['PLASTIC', 'METAL', 'ORGANIC', 'EWASTE', 'PAPER', 'GLASS', 'OTHER'];
 
 export default function EditListingForm({ listing }: { listing: any }) {
   const router = useRouter();

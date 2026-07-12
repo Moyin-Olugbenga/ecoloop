@@ -1,5 +1,4 @@
 import React from 'react';
-import { prisma } from '@/lib/db';
 import Sidebar from '@/components/Sidebar';
 import EditListingForm from './EditListingForm';
 import { redirect, notFound } from 'next/navigation';
