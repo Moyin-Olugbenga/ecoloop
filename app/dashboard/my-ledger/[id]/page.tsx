@@ -1,32 +1,30 @@
 import React from 'react';
 import { prisma } from '@/lib/db';
-import { requireUser } from '@/lib/authz';
 import Sidebar from '@/components/Sidebar';
 import EditListingForm from './EditListingForm';
 import { redirect, notFound } from 'next/navigation';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { getCurrentUser } from '@/app/actions/user';
+import { getListingById } from '@/app/actions/listings';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function EditListingPage({ params }: PageProps) {
-  const sessionUser = await requireUser();
   const { id } = await params;
-
-  // 1. Fetch user data model matching the current auth instance
-  const user = await prisma.user.findUnique({
-    where: { id: sessionUser.id }
-  });
-  if (!user) redirect('/signin');
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    redirect("/signin");
+  }
 
   // 2. Query target listing parameter indices from Prisma
-  const listing = await prisma.listing.findUnique({
-    where: { id },
-  });
-
-  if (!listing) return notFound();
+  const listing = await getListingById(id);
+  if (!listing) {
+    notFound();
+  }
 
   // 3. Authority Validation Safeguard: Enforce listing ownership bounds
   const isOwner = listing.sellerId === user.id || listing.middlemanId === user.id;

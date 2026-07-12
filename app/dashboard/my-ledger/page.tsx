@@ -1,38 +1,32 @@
 import React from 'react';
 import { prisma } from '@/lib/db';
 import Sidebar from '@/components/Sidebar';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { MapPin, ArrowUpRight, ArrowDownLeft, Edit2 } from 'lucide-react';
 import { auth } from '@/auth';
 import Link from 'next/link';
+import { getListings, getUserListing } from '@/app/actions/listings';
+import { getCurrentUser } from '@/app/actions/user';
 
 export const dynamic = "force-dynamic";
 
 export default async function MyLedgerPage() {
-    const session = await auth();
-    if (!session?.user) {
-      redirect("/signin");
-    }
+     const user = await getCurrentUser();
+     
+     if (!user) {
+       redirect("/signin");
+     }
+   
+     const mySales = await getListings();
+     if (!mySales) {
+       notFound();
+     }
   
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id }
-    });
-    if (!user) redirect('/signin');
-  
-  const mySales = await prisma.listing.findMany({
-    where: { sellerId: user.id },
-    orderBy: { createdAt: 'desc' }
-  });
 
-  // 2. Items this user HAS CLAIMED OR PURCHASED (Inbound Acquisitions)
-  const myAcquisitions = await prisma.listing.findMany({
-    where: {
-      OR: [
-        { middlemanId: user.id },
-      ]
-    },
-    orderBy: { updatedAt: 'desc' }
-  });
+  const myAcquisitions = await getUserListing(user.id);
+     if (!mySales) {
+       notFound();
+     }
 
   return (
     <div className="min-h-screen bg-[#F8FBF9] text-[#1A2420] flex font-sans antialiased">

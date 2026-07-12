@@ -5,6 +5,7 @@ import { ListingStatus, WasteType } from "@/app/generated/prisma/enums";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/authz";
 import { v2 as cloudinary } from "cloudinary";
+import { auth } from "@/auth";
 
 // Configure Cloudinary SDK with environment tokens
 cloudinary.config({
@@ -29,7 +30,47 @@ async function uploadToCloudinary(base64ImageString: string): Promise<string> {
   }
 }
 
-// --- Seller creates a listing with integrated Cloudinary support ---
+export async function getListings() {
+  const session = await auth();
+  if (!session?.user) return [];
+
+  return await prisma.listing.findMany({
+    where: { sellerId: session.user.id },
+    include: {
+      // Include related data
+    },
+  });
+}
+export async function getUserListing(id: string) {
+    return await prisma.listing.findMany({
+        where: {
+          OR: [
+            { middlemanId: id },
+          ]
+        },
+        orderBy: { updatedAt: 'desc' }
+      });
+}
+export async function getListingById(id: string) {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  return await prisma.listing.findUnique({
+    where: { id },
+    include: {
+      seller: { select: { name: true, id: true } },
+      dumpSite: true,
+      middleman: { select: { name: true, id: true } },
+      order: { include: { buyer: { select: { name: true } } } },
+      batchItems: {
+        include: {
+          seller: { select: { name: true, id: true } }
+        }
+      }
+    }
+  });
+}
+
 export async function createListing(input: {
   wasteType: WasteType;
   quantityKg: number;

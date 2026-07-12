@@ -9,6 +9,8 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
 import Sidebar from "@/components/Sidebar";
 import ListingDetailActions from "./ListingDetailActions";
+import { getListingById, getListings } from '@/app/actions/listings';
+import { getCurrentUser } from '@/app/actions/user';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -17,34 +19,18 @@ interface PageProps {
 export const dynamic = "force-dynamic";
 
 export default async function ListingDetailPage({ params }: PageProps) {
-  // requireUser() throws rather than redirecting - fine inside Server Actions,
-  // but a page needs to bounce unauthenticated visitors to /signin instead of crashing.
-  const session = await auth();
-  if (!session?.user) {
-    redirect('/signin');
-  }
 
   const { id } = await params;
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id }
-  });
-  if (!user) redirect('/signin');
-
-  const listing = await prisma.listing.findUnique({
-    where: { id },
-    include: {
-      seller: { select: { name: true, id: true } },
-      dumpSite: true,
-      middleman: { select: { name: true, id: true } },
-      order: { include: { buyer: { select: { name: true } } } },
-      batchItems: {
-        include: {
-          seller: { select: { name: true, id: true } }
-        }
-      }
-    }
-  });
+ const user = await getCurrentUser();
+     
+     if (!user) {
+       redirect("/signin");
+     }
+   
+     const listing = await getListingById(id);
+     if (!listing) {
+       notFound();
+     }
 
   if (!listing) return notFound();
 

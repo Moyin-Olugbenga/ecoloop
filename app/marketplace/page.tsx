@@ -3,18 +3,16 @@ import { auth } from "@/auth";
 import MarketplaceView from "./MarketplaceView";
 import { requireUser } from "@/lib/authz";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "../actions/user";
 
 export const dynamic = "force-dynamic";
 
 export default async function MarketplacePage() {
-  const session = await auth();
-  if (!session?.user) {
-    redirect('/signin');
-  }
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id }
-  });
-  if (!user) redirect('/signin');
+  const user = await getCurrentUser();
+      
+      if (!user) {
+        redirect("/signin");
+      }
  
   const [rawListings, batchListings, claimedForBatching] = await Promise.all([
     prisma.listing.findMany({
