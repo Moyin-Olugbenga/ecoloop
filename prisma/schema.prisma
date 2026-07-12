@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SELLER
+  MIDDLEMAN
+  BUYER
+  SCHOOL
+  ADMIN
+}
+
+enum ListingStatus {
+  LISTED
+  CLAIMED
+  SOLD
+}
+
+enum WasteType {
+  PLASTIC
+  METAL
+  ORGANIC
+  EWASTE
+  PAPER
+  GLASS
+  OTHER
+}
+
+enum TokenType {
+  ACTIVATION
+  PASSWORD_RESET
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role
+  lga           String?
+  phone         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  listings          Listing[]      @relation("SellerListings")
+  claims            Listing[]      @relation("MiddlemanClaims")
+  purchases         Order[]        @relation("BuyerOrders")
+  uploadedTutorials Tutorial[]     @relation("UploadedTutorials")
+  watchedTutorials  TutorialView[] @relation("WatchedTutorials")
+  tokens            VerificationToken[]
+}
+
+model VerificationToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  type      TokenType
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, type])
+}
+
+model DumpSite {
+  id             String          @id @default(uuid())
+  name           String
+  lat            Float
+  lng            Float
+  pollutionScore Int             @default(0) // 0-100, updated by simulated readings
+  readings       SensorReading[]
+  listings       Listing[]
+  createdAt      DateTime        @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model SensorReading {
+  id        String   @id @default(uuid())
+  siteId    String
+  site      DumpSite @relation(fields: [siteId], references: [id])
+  score     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Listing {
+  id         String        @id @default(uuid())
+  sellerId   String
+  seller     User          @relation("SellerListings", fields: [sellerId], references: [id])
+  wasteType  WasteType
+  quantityKg Float
+  price      Float?
+  imageUrl   String?
+  location   String?       
+  status     ListingStatus @default(LISTED)
+
+  dumpSiteId String?
+  dumpSite   DumpSite?     @relation(fields: [dumpSiteId], references: [id])
+
+  middlemanId String?
+  middleman   User?        @relation("MiddlemanClaims", fields: [middlemanId], references: [id])
+
+  // when a middleman relists a sorted batch, link back to source listings
+  sourceListingId String?
+  sourceListing   Listing?  @relation("BatchSource", fields: [sourceListingId], references: [id])
+  batchItems      Listing[] @relation("BatchSource")
+
+  order     Order?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  listingId String   @unique
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  buyerId   String
+  buyer     User     @relation("BuyerOrders", fields: [buyerId], references: [id])
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Tutorial {
+  id           String         @id @default(uuid())
+  title        String
+  description  String
+  videoUrl     String
+  thumbnailUrl String?
+  category     WasteType?
+  uploadedById String
+  uploadedBy   User           @relation("UploadedTutorials", fields: [uploadedById], references: [id])
+  views        TutorialView[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model TutorialView {
+  id         String   @id @default(uuid())
+  tutorialId String
+  tutorial   Tutorial @relation(fields: [tutorialId], references: [id])
+  userId     String
+  user       User     @relation("WatchedTutorials", fields: [userId], references: [id])
+  watchedAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([tutorialId, userId])
+}
