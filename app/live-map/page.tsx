@@ -1,28 +1,13 @@
 import React from 'react';
-// 1. IMPORT Next.js dynamic under an alias to prevent naming clashes!
-import nextDynamic from 'next/dynamic'; 
 import Sidebar from '@/components/Sidebar';
 import { requireUser } from '@/lib/authz';
 import { prisma } from '@/lib/db';
 import { redirect } from 'next/navigation';
 import { Map } from 'lucide-react';
+// Import the clean client-safe wrapper wrapper
+import MapSafeLoader from '@/components/MapSafeLoader'; 
 
-// 2. This is the exported variable that was conflicting
-export const dynamic = "force-dynamic"; 
-
-// 3. Use the alias "nextDynamic" here instead of "dynamic"
-const LiveEcoMap = nextDynamic(
-  () => import('@/components/LiveEcoMap'),
-  { 
-    ssr: false, 
-    loading: () => (
-      <div className="w-full h-[600px] bg-white border border-gray-200 rounded-2xl flex flex-col items-center justify-center text-xs text-gray-400 font-bold space-y-3 shadow-sm">
-        <div className="w-6 h-6 border-2 border-[#063321] border-t-transparent rounded-full animate-spin" />
-        <span className="uppercase tracking-widest text-[10px]">Initializing Regional Grid Coordinates...</span>
-      </div>
-    )
-  }
-);
+export const dynamic = "force-dynamic";
 
 export default async function LiveMapPage() {
   const sessionUser = await requireUser();
@@ -38,7 +23,7 @@ export default async function LiveMapPage() {
       {/* Universal Dashboard Sidebar Component */}
       <Sidebar user={user} role={user.role} />
 
-      {/* Main Container Area - Adjusted with a wide layout container */}
+      {/* Main Container Area */}
       <div className="flex-1 lg:ml-64 p-4 sm:p-8 lg:p-12 pt-24 lg:pt-12 transition-all">
         <div className="max-w-6xl mx-auto space-y-8">
           
@@ -65,7 +50,8 @@ export default async function LiveMapPage() {
 
           {/* Full-width Map Container */}
           <div className="bg-white border border-gray-200/80 rounded-2xl p-2 shadow-sm">
-            <LiveEcoMap />
+            {/* 🗺️ Mount the loader safely */}
+            <MapSafeLoader />
           </div>
 
         </div>
