@@ -30,8 +30,7 @@ export default function SignUp() {
     { id: 'household' as const, title: 'Household / Resident', desc: 'List and sell sorted home recyclables for rewards.', icon: Users },
     { id: 'collector' as const, title: 'Collector / Middleman', desc: 'Gain source visibility and fulfill local pickups.', icon: ShoppingBag },
     { id: 'buyer' as const, title: 'Corporate Buyer / Factory', desc: 'Source high-purity, bulk recycled feedstock directly.', icon: Layers },
-    { id: 'school' as const, title: 'School / Educator', desc: 'Access gamified curriculum tied to live street data.', icon: GraduationCap },
-  ];
+   ];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -92,7 +91,6 @@ export default function SignUp() {
           {selectedRole === 'household' && "Unlocks direct peer micro-rewards for dynamic sorting habits."}
           {selectedRole === 'collector' && "Optimizes multi-point neighborhood routing to reduce manual sorting strain."}
           {selectedRole === 'buyer' && "Bypasses informal broker layer to secure guaranteed bulk material pipeline."}
-          {selectedRole === 'school' && "Links environmental awareness to live environmental tracking criteria."}
         </div>
       </div>
 
@@ -105,28 +103,32 @@ export default function SignUp() {
 
           <div className="space-y-3">
             <label className="text-xs uppercase font-black tracking-wider text-gray-400 block">Select Your Platform Role</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {roles.map((role) => {
-                const Icon = role.icon;
-                const isSelected = selectedRole === role.id;
-                return (
-                  <button
-                    key={role.id}
-                    type="button"
-                    onClick={() => setSelectedRole(role.id)}
-                    className={`p-4 text-left rounded-xl border-2 transition-all flex items-start space-x-3 ${isSelected ? 'border-[#063321] bg-white shadow-md ring-2 ring-[#9DE3C5]/40' : 'border-gray-200 bg-white/60 hover:bg-white'}`}
-                  >
-                    <div className={`p-2 rounded-lg mt-0.5 ${isSelected ? 'bg-[#063321] text-[#9DE3C5]' : 'bg-gray-100 text-gray-500'}`}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="font-bold text-xs block text-[#1A2420]">{role.title}</span>
-                      <span className="text-[11px] text-gray-500 block mt-0.5 leading-tight">{role.desc}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {roles.map((role) => {
+                    const Icon = role.icon;
+                    const isSelected = selectedRole === role.id;
+                    return (
+                    <button
+                        key={role.id}
+                        type="button"
+                        onClick={() => setSelectedRole(role.id)}
+                        className={`p-4 text-left rounded-xl border-2 transition-all flex items-start space-x-3 h-full ${
+                        isSelected 
+                            ? 'border-[#063321] bg-white shadow-md ring-2 ring-[#9DE3C5]/40' 
+                            : 'border-gray-200 bg-white/60 hover:bg-white'
+                        }`}
+                    >
+                        <div className={`p-2 rounded-lg mt-0.5 flex-shrink-0 ${isSelected ? 'bg-[#063321] text-[#9DE3C5]' : 'bg-gray-100 text-gray-500'}`}>
+                        <Icon className="w-4 h-4" />
+                        </div>
+                        <div>
+                        <span className="font-bold text-xs block text-[#1A2420]">{role.title}</span>
+                        <span className="text-[11px] text-gray-500 block mt-0.5 leading-tight">{role.desc}</span>
+                        </div>
+                    </button>
+                    );
+                })}
+          </div>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>

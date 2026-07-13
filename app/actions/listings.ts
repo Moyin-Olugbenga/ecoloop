@@ -255,8 +255,8 @@ export async function updateListing(input: {
 
   const existing = await prisma.listing.findUnique({ where: { id: input.id } });
   if (!existing) throw new Error("Listing parameters not found");
-  if (existing.status === ListingStatus.SOLD) {
-    throw new Error("Cannot update a completed batch transaction.");
+  if (existing.status === ListingStatus.SOLD || existing.status === ListingStatus.CLAIMED) {
+    throw new Error("Cannot update a sold or claimed batch transaction.");
   }
   if (existing.sellerId !== user.id && existing.middlemanId !== user.id) {
     throw new Error("Unauthorized update modification request.");

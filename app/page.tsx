@@ -74,9 +74,6 @@ export default function MainPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center bg-[#0b4d32] border border-[#9DE3C5]/30 text-[#9DE3C5] text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider mx-auto lg:mx-0">
-                🚀 Hackathon Project Phase Entry • 2026
-              </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
                 Turning Lagos' Waste Problem Into a <span className="text-[#9DE3C5]">Waste Economy</span>
               </h1>
@@ -161,7 +158,7 @@ export default function MainPage() {
                 <span>The Core Crisis</span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-black text-[#063321] tracking-tight">
-                Lagos is drowning in waste it can't see, sort, or sell
+                Nigeria is drowning in waste it can't see, sort, or sell
               </h2>
               <p className="text-gray-600 leading-relaxed">
                 Most refuse is dumped in informal, scattered open sites with absolutely no data tracking. The entities generating waste, the collectors sorting it, and processing buyers operate completely disconnected.
@@ -293,43 +290,6 @@ export default function MainPage() {
           </div>
         </div>
       </section>
-
-      {/* ─── 6. NEW SECTION: 5-DAY ROADMAP BUILD PLAN ─── */}
-      <section id="build-plan" className="py-20 sm:py-28 bg-[#F8FBF9] border-t border-gray-200/80 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-2">
-            <h2 className="text-xs font-black uppercase tracking-widest text-[#063321]">Project Implementation Sprint</h2>
-            <p className="text-3xl sm:text-4xl font-black text-[#1A2420] tracking-tight">
-              5-Day Phase Build Architecture
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {[
-              { day: 'Day 1', label: 'Foundation Set', text: 'Finalize interface endpoints & operational relational database schemas.', icon: Layers },
-              { day: 'Day 2', label: 'Core Marketplace', text: 'Establish transactional pipelines connecting small sellers to aggregators.', icon: ShoppingBag },
-              { day: 'Day 3', label: 'Telemetry Link', text: 'Bind mapped telemetry views with automated field hardware simulation triggers.', icon: Activity },
-              { day: 'Day 4', label: 'Polish & Assert', text: 'Configure transactional ledger validations and profile security layers.', icon: ShieldCheck },
-              { day: 'Day 5', label: 'Demo Ready', text: 'Final deployment instance audits and continuous loop stress tests.', icon: Award },
-            ].map((step, idx) => {
-              const StepIcon = step.icon;
-              return (
-                <div key={idx} className="bg-white border border-gray-200/80 rounded-2xl p-6 flex flex-col justify-between shadow-sm relative group hover:border-[#063321] transition-all">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-mono font-bold text-[#063321] bg-[#9DE3C5] px-2.5 py-1 rounded-md">{step.day}</span>
-                      <StepIcon className="w-5 h-5 text-gray-400 group-hover:text-[#063321] transition-colors" />
-                    </div>
-                    <h4 className="font-black text-[#063321] text-base">{step.label}</h4>
-                    <p className="text-xs text-gray-500 leading-relaxed">{step.text}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* ─── 7. NEW SECTION: TARGET USERS & EXPECTED IMPACT ─── */}
       <section className="py-20 sm:py-28 bg-white border-y border-gray-100 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">

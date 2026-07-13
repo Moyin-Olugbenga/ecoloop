@@ -1,11 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { WasteType } from "@/app/generated/prisma";
+import { WasteType } from "@/app/generated/prisma/enums";
 import { revalidatePath } from "next/cache";
-import { requireRole, requireUser } from "@/lib/authz";
+import { requireUser } from "@/lib/authz";
 
-// --- Admin/uploader adds a tutorial ---
+// --- Any signed-in user can upload a tutorial ---
 export async function createTutorial(input: {
   title: string;
   description: string;
@@ -13,7 +13,8 @@ export async function createTutorial(input: {
   thumbnailUrl?: string;
   category?: WasteType;
 }) {
-  const user = await requireRole("ADMIN");
+  // Relaxed from ADMIN to requireUser so anyone can participate
+  const user = await requireUser();
 
   const tutorial = await prisma.tutorial.create({
     data: {
@@ -30,18 +31,17 @@ export async function createTutorial(input: {
   return tutorial;
 }
 
-// --- List all tutorials, optionally filtered by category ---
 export async function getTutorials(category?: WasteType) {
   return prisma.tutorial.findMany({
     where: category ? { category } : undefined,
     orderBy: { createdAt: "desc" },
     include: {
+      uploadedBy: { select: { name: true } },
       _count: { select: { views: true } },
     },
   });
 }
 
-// --- Get one tutorial with detail ---
 export async function getTutorial(tutorialId: string) {
   return prisma.tutorial.findUnique({
     where: { id: tutorialId },
@@ -52,7 +52,6 @@ export async function getTutorial(tutorialId: string) {
   });
 }
 
-// --- Mark a tutorial as watched by the current user (idempotent) ---
 export async function markTutorialWatched(tutorialId: string) {
   const user = await requireUser();
 
@@ -61,14 +60,13 @@ export async function markTutorialWatched(tutorialId: string) {
       tutorialId_userId: { tutorialId, userId: user.id },
     },
     create: { tutorialId, userId: user.id },
-    update: {}, // already watched, no-op — keeps original watchedAt
+    update: {},
   });
 
   revalidatePath("/learn");
   return { watched: true };
 }
 
-// --- Get a user's watch progress, e.g. for a school completion view ---
 export async function getUserWatchedTutorials(userId: string) {
   return prisma.tutorialView.findMany({
     where: { userId },

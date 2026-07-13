@@ -1,7 +1,7 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
 import { notFound, redirect } from 'next/navigation';
-import { MapPin, ArrowUpRight, ArrowDownLeft, Edit2 } from 'lucide-react';
+import { MapPin, ArrowUpRight, ArrowDownLeft, Edit2, View } from 'lucide-react';
 import Link from 'next/link';
 import { getListings, getUserListing } from '@/app/actions/listings';
 import { getCurrentUser } from '@/app/actions/user';
@@ -58,7 +58,7 @@ export default async function MyLedgerPage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {mySales.map((listing) => {
-                    const isEditable = listing.status !== 'SOLD'; // Guard check: editable if LISTED or CLAIMED
+                    const isEditable = listing.status == 'LISTED' || 'CLAIMED' || 'SOLD'; // Guard check: editable if LISTED or CLAIMED
 
                     return (
                       <div 
@@ -92,11 +92,11 @@ export default async function MyLedgerPage() {
                         {isEditable && (
                           <div className="pt-2 border-t border-gray-100 mt-2 flex justify-end">
                             <Link 
-                              href={`/marketplace/${listing.id}/edit`}
+                              href={`/dashboard/my-ledger/${listing.id}`}
                               className="inline-flex items-center space-x-1.5 text-[11px] font-black uppercase tracking-wider text-white bg-[#063321] hover:bg-opacity-90 rounded-xl px-3 py-2 transition-all shadow-sm"
                             >
-                              <Edit2 className="w-3 h-3 text-[#9DE3C5]" />
-                              <span>Edit Parameters</span>
+                              <View className="w-3 h-3 text-[#9DE3C5]" />
+                              <span>View Parameters</span>
                             </Link>
                           </div>
                         )}

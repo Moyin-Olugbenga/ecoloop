@@ -3,6 +3,7 @@
 
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 export async function getCurrentUser() {
   const session = await auth();
@@ -15,7 +16,7 @@ export async function getCurrentUser() {
   });
 
   if (!user) {
-    throw new Error("User not found");
+    redirect('/signin'); 
   }
 
   return user;

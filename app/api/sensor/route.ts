@@ -1,12 +1,11 @@
-// app/api/sensor/route.ts
-import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { notifyMiddlemenIfSevere } from "@/lib/notifications";
 
+// Hardware node payload: { siteId: string, score: number }
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("Request body:", body); // Log the request
-
     const { siteId, score } = body;
 
     if (!siteId || typeof score !== "number") {
@@ -15,52 +14,55 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Check if the field exists in the model
-    console.log("Checking if DumpSite model has pollutionScore...");
-    const site = await prisma.dumpSite.findUnique({
-      where: { id: siteId },
-    });
-
-    if (!site) {
-      return NextResponse.json({ error: "Site not found" }, { status: 404 });
+    if (score < 0 || score > 100) {
+      return NextResponse.json(
+        { error: "score must be between 0 and 100" },
+        { status: 400 }
+      );
     }
 
-    console.log("Site found:", site.id);
+    const site = await prisma.dumpSite.findUnique({ where: { id: siteId } });
+    if (!site) {
+      return NextResponse.json({ error: "Unknown siteId" }, { status: 404 });
+    }
 
-    // Try to create reading
-    const reading = await prisma.sensorReading.create({
-      data: {
-        siteId,
-        score,
-      },
+    const previousScore = site.pollutionScore;
+
+    const [reading] = await prisma.$transaction([
+      prisma.sensorReading.create({ data: { siteId, score } }),
+      prisma.dumpSite.update({
+        where: { id: siteId },
+        data: { pollutionScore: score },
+      }),
+    ]);
+
+    const { notified } = await notifyMiddlemenIfSevere({
+      dumpSiteId: siteId,
+      siteName: site.name,
+      siteLga: site.lga,
+      previousScore,
+      newScore: score,
     });
 
-    console.log("Reading created:", reading.id);
-
-    // Try to update site
-    const updatedSite = await prisma.dumpSite.update({
-      where: { id: siteId },
-      data: {
-        pollutionScore: Math.round(score),
-      },
-    });
-
-    console.log("Site updated:", updatedSite.id);
-
-    return NextResponse.json({
-      ok: true,
-      reading,
-      updatedSite,
-    }, { status: 201 });
-  } catch (error) {
-    console.error("Detailed error:", error);
-    return NextResponse.json(
-      { 
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: true, reading, notified }, { status: 201 });
+  } catch (err) {
+    console.error("sensor ingest error", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
+}
+
+// Optional: list recent readings for a site, e.g. for a small chart on the map popup
+export async function GET(req: NextRequest) {
+  const siteId = req.nextUrl.searchParams.get("siteId");
+  if (!siteId) {
+    return NextResponse.json({ error: "siteId is required" }, { status: 400 });
+  }
+
+  const readings = await prisma.sensorReading.findMany({
+    where: { siteId },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  return NextResponse.json({ readings });
 }

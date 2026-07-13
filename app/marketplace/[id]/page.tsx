@@ -2,15 +2,15 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import {
-  ArrowLeft, MapPin, Scale, ShieldCheck, History,
+  ArrowLeft, MapPin, Scale, History,
   Info, Link as LinkIcon
 } from 'lucide-react';
 import { prisma } from "@/lib/db";
-import { auth } from "@/auth";
 import Sidebar from "@/components/Sidebar";
 import ListingDetailActions from "./ListingDetailActions";
-import { getListingById, getListings } from '@/app/actions/listings';
+import { getListingById } from '@/app/actions/listings';
 import { getCurrentUser } from '@/app/actions/user';
+import { CartProvider } from '@/lib/cart-context';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -19,24 +19,22 @@ interface PageProps {
 export const dynamic = "force-dynamic";
 
 export default async function ListingDetailPage({ params }: PageProps) {
-
   const { id } = await params;
- const user = await getCurrentUser();
-     
-     if (!user) {
-       redirect("/signin");
-     }
+  const user = await getCurrentUser();
+       
+  if (!user) {
+    redirect("/signin");
+  }
    
-     const listing = await getListingById(id);
-     if (!listing) {
-       notFound();
-     }
-
-  if (!listing) return notFound();
+  const listing = await getListingById(id);
+  if (!listing) {
+    notFound();
+  }
 
   const isBatch = listing.batchItems.length > 0;
 
   return (
+    <CartProvider>
     <div className="min-h-screen bg-[#F8FBF9] text-[#1A2420] flex font-sans antialiased">
 
       <Sidebar user={user} role={user.role} />
@@ -76,7 +74,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
                 <div className="bg-[#F8FBF9] border border-gray-100 p-4 rounded-xl space-y-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" /> Dispatch Depot
+                    <MapPin className="w-3.5 h-3.5 " /> Dispatch Depot
                   </span>
                   <span className="text-xs font-black text-gray-700 block truncate">{listing.location || 'Not Configured'}</span>
                 </div>
@@ -133,6 +131,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                   </div>
                 </div>
 
+                {/* Listing Action Control Block Inject */}
                 <ListingDetailActions
                   listing={{
                     id: listing.id,
@@ -195,5 +194,6 @@ export default async function ListingDetailPage({ params }: PageProps) {
       </div>
 
     </div>
+    </CartProvider>
   );
 }

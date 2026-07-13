@@ -19,20 +19,17 @@ export default async function EditListingPage({ params }: PageProps) {
     redirect("/signin");
   }
 
-  // 2. Query target listing parameter indices from Prisma
   const listing = await getListingById(id);
   if (!listing) {
     notFound();
   }
 
-  // 3. Authority Validation Safeguard: Enforce listing ownership bounds
   const isOwner = listing.sellerId === user.id || listing.middlemanId === user.id;
   if (!isOwner) {
     redirect('/dashboard/my-ledger?error=UnauthorizedAction');
   }
 
-  // 4. Transactional Lifecycle Safeguard: Lock edits if the stock asset has already been completely sold
-  if (listing.status === 'SOLD') {
+  if (listing.status === 'SOLD' || listing.status === 'CLAIMED') {
     redirect('/dashboard/my-ledger?error=LockedAsset');
   }
 
@@ -62,7 +59,7 @@ export default async function EditListingPage({ params }: PageProps) {
             <div className="border-b border-gray-100 pb-4">
               <span className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider block">Modify Active Node Reference</span>
               <h1 className="text-xl font-black text-[#063321] tracking-tight mt-0.5">
-                Update Listing parameters ({listing.id.slice(0, 8).toUpperCase()})
+                View Listing parameters ({listing.id.slice(0, 8).toUpperCase()})
               </h1>
             </div>
 

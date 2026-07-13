@@ -53,7 +53,21 @@ model User {
   purchases         Order[]        @relation("BuyerOrders")
   uploadedTutorials Tutorial[]     @relation("UploadedTutorials")
   watchedTutorials  TutorialView[] @relation("WatchedTutorials")
-  tokens            VerificationToken[]
+  tokens            VerificationToken[]  
+  notifications     Notification[]
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  dumpSiteId String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
 }
 
 model VerificationToken {
@@ -74,7 +88,8 @@ model DumpSite {
   id             String          @id @default(uuid())
   name           String
   lat            Float
-  lng            Float
+  lng            Float  
+  lga            String?
   pollutionScore Int             @default(0) // 0-100, updated by simulated readings
   readings       SensorReading[]
   listings       Listing[]

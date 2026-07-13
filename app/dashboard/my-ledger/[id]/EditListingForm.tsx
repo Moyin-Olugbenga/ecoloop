@@ -148,7 +148,7 @@ export default function EditListingForm({ listing }: { listing: any }) {
         disabled={isPending}
         className="w-full bg-[#063321] hover:bg-opacity-95 text-white font-black py-4 rounded-xl uppercase tracking-widest text-xs disabled:opacity-60 transition-all shadow-md flex items-center justify-center space-x-2"
       >
-        <span>{isPending ? 'Syncing modified state parameters...' : 'Confirm Listing Mutations'}</span>
+        <span>{isPending ? 'Syncing modified state parameters...' : 'Update Listing Parameters'}</span>
       </button>
 
     </form>

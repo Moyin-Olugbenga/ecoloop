@@ -1,21 +1,15 @@
-import 'dotenv/config';
-import { PrismaClient, Role, WasteType, ListingStatus } from "../app/generated/prisma/client";
+import { PrismaClient, Role, WasteType, ListingStatus } from "../app/generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL is not defined");
-}
-
-
-const adapter = new PrismaPg({ connectionString: connectionString });
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log("Seeding...");
 
-  const demoPassword = await bcrypt.hash("P@ssw0rd", 10);
+  // Demo password for every seeded user — fine for a hackathon demo, never do this in prod
+  const demoPassword = await bcrypt.hash("password123", 10);
 
   // --- Users ---
   const seller1 = await prisma.user.create({
@@ -85,13 +79,13 @@ async function main() {
 
   // --- Dump Sites (fixed coordinates, e.g. around Ile-Ife) ---
   const site1 = await prisma.dumpSite.create({
-    data: { name: "Sabo Dump Site", lat: 7.4905, lng: 4.5521, pollutionScore: 72 },
+    data: { name: "Sabo Dump Site", lat: 7.4905, lng: 4.5521, lga: "Ife Central LGA", pollutionScore: 72 },
   });
   const site2 = await prisma.dumpSite.create({
-    data: { name: "Mayfair Junction Dump", lat: 7.4772, lng: 4.5601, pollutionScore: 45 },
+    data: { name: "Mayfair Junction Dump", lat: 7.4772, lng: 4.5601, lga: "Ife East LGA", pollutionScore: 45 },
   });
   const site3 = await prisma.dumpSite.create({
-    data: { name: "OAU Estate Dump", lat: 7.5182, lng: 4.5284, pollutionScore: 60 },
+    data: { name: "OAU Estate Dump", lat: 7.5182, lng: 4.5284, lga: "Ife Central LGA", pollutionScore: 60 },
   });
 
   // --- Simulated sensor readings (a short history per site) ---

@@ -1,102 +1,97 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
-import { ShoppingCart, CreditCard } from 'lucide-react';
-import { claimListing, purchaseListing } from '@/app/actions/listings';
+import React, { useTransition } from 'react';
+import { ShoppingCart, CreditCard, ArrowRight } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
+import { useRouter } from 'next/navigation';
+import { purchaseListing } from '@/app/actions/listings';
 
-export default function ListingDetailActions({
-  listing,
-  isBatch,
-  role,
-}: {
-  listing: { id: string; wasteType: string; quantityKg: number; price: number | null; location: string | null; status: string };
+interface ActionsProps {
+  listing: {
+    id: string;
+    wasteType: string;
+    quantityKg: number;
+    price: number | null;
+    location: string | null;
+    status: string;
+  };
   isBatch: boolean;
   role?: string;
-}) {
+}
+
+export default function ListingDetailActions({ listing, role }: ActionsProps) {
+  const cart = useCart();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [added, setAdded] = useState(false);
-  const cart = isBatch ? useCart() : null;
 
-  function handleClaim() {
-    startTransition(async () => {
-      try {
-        await claimListing(listing.id);
-        router.refresh();
-      } catch (err) {
-        alert(err instanceof Error ? err.message : 'Failed to claim');
-      }
-    });
-  }
+  const isListed = listing.status === 'LISTED';
+  const hasPrice = listing.price !== null;
+
+  // Check if this explicit listing item is already sitting in the client's cart state
+  const isInCart = cart.items.some((item) => item.id === listing.id);
 
   function handleAddToCart() {
-    if (!cart || listing.price == null) return;
+    if (isInCart) {
+      router.push('/marketplace/cart');
+      return;
+    }
+    
+    // Append object payload context structure into context tracking
     cart.addItem({
       id: listing.id,
       wasteType: listing.wasteType,
       quantityKg: listing.quantityKg,
-      price: listing.price,
-      location: listing.location,
+      price: listing.price ?? 0,
+      location: listing.location ?? 'Default Depot',
     });
-    setAdded(true);
   }
 
   function handleInstantCheckout() {
     startTransition(async () => {
       try {
+        if (!hasPrice) return;
         await purchaseListing(listing.id);
-        router.push('/dashboard');
+        router.push('/dashboard/my-ledger');
+        router.refresh();
       } catch (err) {
-        alert(err instanceof Error ? err.message : 'Failed to purchase');
+        alert(err instanceof Error ? err.message : 'Checkout operation failed.');
       }
     });
   }
 
-  if (listing.status !== 'LISTED') {
-    return <p className="text-xs text-gray-400 font-bold uppercase tracking-wider text-center py-2">No actions available — {listing.status.toLowerCase()}</p>;
-  }
-
-  if (!isBatch && role === 'MIDDLEMAN') {
+  // If the listing status isn't available or the user isn't a buyer/admin, hide transactional options
+  if (!isListed) {
     return (
-      <button
-        onClick={handleClaim}
-        disabled={isPending}
-        className="w-full bg-[#063321] hover:bg-opacity-90 text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center space-x-2 shadow-md transition-all disabled:opacity-60"
-      >
-        {isPending ? 'Claiming...' : 'Claim Waste Stream'}
-      </button>
-    );
-  }
-
-  if (isBatch && role === 'BUYER') {
-    return (
-      <div className="space-y-3">
-        <button
-          onClick={handleAddToCart}
-          disabled={added || listing.price == null}
-          className="w-full bg-[#063321] hover:bg-opacity-90 text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center space-x-2 shadow-md transition-all disabled:opacity-60"
-        >
-          <ShoppingCart className="w-4 h-4 text-[#9DE3C5]" />
-          <span>{added ? 'Added to Cart' : 'Add Material to Cart'}</span>
-        </button>
-
-        <button
-          onClick={handleInstantCheckout}
-          disabled={isPending || listing.price == null}
-          className="w-full bg-[#9DE3C5] text-[#063321] font-black py-4 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center space-x-2 shadow-sm hover:bg-opacity-90 transition-all disabled:opacity-60"
-        >
-          <CreditCard className="w-4 h-4" />
-          <span>{isPending ? 'Processing...' : 'Instant Checkout'}</span>
-        </button>
+      <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
+        Material lot unavailable for procurement
       </div>
     );
   }
 
   return (
-    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider text-center py-2">
-      {role ? 'No actions available for your role' : 'Sign in to interact with this listing'}
-    </p>
+    <div className="space-y-3">
+      {/* Add To Cart Trigger */}
+      <button
+        onClick={handleAddToCart}
+        className={`w-full font-black py-4 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center space-x-2 shadow-sm transition-all border border-gray-200 ${
+          isInCart 
+            ? 'bg-white text-[#063321] hover:bg-gray-50' 
+            : 'bg-white text-gray-700 hover:bg-gray-50'
+        }`}
+      >
+        <ShoppingCart className="w-4 h-4 text-[#063321]" />
+        <span>{isInCart ? 'View inside Cart' : 'Add Material to Cart'}</span>
+      </button>
+
+      {/* Direct Settlement Action Checkout Vector */}
+      <button
+        disabled={isPending || !hasPrice}
+        onClick={handleInstantCheckout}
+        className="w-full bg-[#063321] hover:bg-opacity-95 text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center space-x-2 shadow-md transition-all disabled:opacity-50"
+      >
+        <CreditCard className="w-4 h-4 text-[#9DE3C5]" />
+        <span>{isPending ? 'Processing transaction...' : 'Proceed to Checkout'}</span>
+      </button>
+    </div>
   );
 }

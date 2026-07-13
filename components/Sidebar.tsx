@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  ShoppingBag, User, LogOut, Menu, X, FolderSync
+  ShoppingBag, User, LogOut, Menu, X, FolderSync,
+  Video
 } from 'lucide-react';
 import { User as UserType, Role } from '@/app/generated/prisma/client';
 
@@ -14,8 +15,9 @@ export default function Sidebar({ user, role }: { user: UserType; role?: Role })
 
   const navItems = [
     { name: 'Marketplace Feed', href: '/marketplace', icon: ShoppingBag },
-    { name: 'My Personal Ledger', href: '/dashboard/my-ledger', icon: FolderSync },
-    { name: 'My Profile Node', href: `/users/${user?.id}?role=${role}`, icon: User },
+    { name: 'My Ledger', href: '/dashboard/my-ledger', icon: FolderSync },
+    { name: 'My Profile', href: `/users/${user?.id}?role=${role}`, icon: User },
+    { name: 'My learning', href: `/learn`, icon: Video },
   ];
 
   return (

@@ -16,12 +16,12 @@ export default async function MarketplacePage() {
  
   const [rawListings, batchListings, claimedForBatching] = await Promise.all([
     prisma.listing.findMany({
-      where: { status: "LISTED", batchItems: { none: {} } },
+      where: { status: "LISTED", batchItems: { none: {} }, sellerId: { not: user.id } },
       include: { seller: { select: { name: true } }, dumpSite: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.listing.findMany({
-      where: { batchItems: { some: {} } },
+      where: { batchItems: { some: {} }, sellerId: { not: user.id } },
       include: { seller: { select: { name: true } } },
       orderBy: { createdAt: "desc" },
     }),
