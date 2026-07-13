@@ -1,7 +1,7 @@
 // app/api/sensor/route.ts
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-// app/api/sensor/route.ts
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
