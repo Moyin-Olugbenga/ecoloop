@@ -3,8 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
    typescript: {
-    // ⚠️ Warning: This allows production builds to succeed even with type errors
     ignoreBuildErrors: true,
+  },
+   experimental: {
+    serverExternalPackages: ['@prisma/client'],
   },
   // eslint: {
   //   // Also ignore ESLint errors if needed

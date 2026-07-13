@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { WasteType } from "@prisma/client";
+import { WasteType } from "@/app/generated/prisma";
 import { revalidatePath } from "next/cache";
 import { requireRole, requireUser } from "@/lib/authz";
 

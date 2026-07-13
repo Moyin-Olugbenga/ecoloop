@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/authz";
-import { Listing } from "@prisma/client";
+import { Listing } from "@/app/generated/prisma";
 
 export async function getSellerDashboard() {
   const user = await requireRole("SELLER", "ADMIN");
