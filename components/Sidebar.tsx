@@ -20,6 +20,7 @@ export default function Sidebar({ user, role }: { user: UserType; role?: Role })
     { name: 'My Ledger', href: '/dashboard/my-ledger', icon: FolderSync },
     { name: 'My Profile', href: `/users/${user?.id}?role=${role}`, icon: User },
     { name: 'My learning', href: `/learn`, icon: Video },
+    { name: 'Live map', href: `/live-map`, icon: Video },
   ];
 
   const handleDisconnect = async () => {
