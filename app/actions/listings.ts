@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db";
 import { ListingStatus, WasteType } from "@/app/generated/prisma";
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/lib/authz";
+import { requireRole, requireUser } from "@/lib/authz";
 import { v2 as cloudinary } from "cloudinary";
 import { auth } from "@/auth";
 
@@ -196,7 +196,7 @@ export async function purchaseListing(listingId: string) {
 
 // --- Buyer checks out a cart of multiple listings at once ---
 export async function purchaseListings(listingIds: string[]) {
-  const user = await requireRole("BUYER", "ADMIN");
+  const user = await requireUser();
 
   const results: { id: string; ok: boolean; error?: string }[] = [];
 

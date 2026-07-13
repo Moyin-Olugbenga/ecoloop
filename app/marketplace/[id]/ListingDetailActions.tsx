@@ -32,7 +32,7 @@ export default function ListingDetailActions({ listing, role }: ActionsProps) {
 
   function handleAddToCart() {
     if (isInCart) {
-      router.push('/marketplace/cart');
+      router.push('/cart');
       return;
     }
     
