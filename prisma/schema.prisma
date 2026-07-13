@@ -48,6 +48,8 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  reviewsGiven      Review[]      @relation("BuyerReviews")
+  reviewsReceived   Review[]      @relation("SellerReviews")
   listings          Listing[]      @relation("SellerListings")
   claims            Listing[]      @relation("MiddlemanClaims")
   purchases         Order[]        @relation("BuyerOrders")
@@ -104,6 +106,24 @@ model SensorReading {
   score     Int
   createdAt DateTime @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // Enforced on the frontend/actions layer from 1 to 5
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationship Links
+  buyerId   String
+  buyer     User     @relation("BuyerReviews", fields: [buyerId], references: [id], onDelete: Cascade)
+
+  sellerId  String
+  seller    User     @relation("SellerReviews", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  // 🛡️ ANTI-THEFT GUARDIAN: Ensures one comprehensive verified evaluation per buyer/seller pairing
+  @@unique([buyerId, sellerId])
 }
 
 model Listing {

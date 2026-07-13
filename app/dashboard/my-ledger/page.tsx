@@ -1,30 +1,31 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
 import { notFound, redirect } from 'next/navigation';
-import { MapPin, ArrowUpRight, ArrowDownLeft, Edit2, View } from 'lucide-react';
+import { MapPin, ArrowUpRight, ArrowDownLeft, View } from 'lucide-react';
 import Link from 'next/link';
 import { getListings, getUserListing } from '@/app/actions/listings';
 import { getCurrentUser } from '@/app/actions/user';
+import SellerReviewSection from './SellerReviewSection';
 
 export const dynamic = "force-dynamic";
 
 export default async function MyLedgerPage() {
-     const user = await getCurrentUser();
-     
-     if (!user) {
-       redirect("/signin");
-     }
-   
-     const mySales = await getListings();
-     if (!mySales) {
-       notFound();
-     }
+  const user = await getCurrentUser();
   
+  if (!user) {
+    redirect("/signin");
+  }
 
+  const mySales = await getListings();
+  if (!mySales) {
+    notFound();
+  }
+
+  // Fetch items current user has bought or claimed from other system nodes
   const myAcquisitions = await getUserListing(user.id);
-     if (!mySales) {
-       notFound();
-     }
+  if (!myAcquisitions) {
+    notFound();
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FBF9] text-[#1A2420] flex font-sans antialiased">
@@ -58,7 +59,7 @@ export default async function MyLedgerPage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {mySales.map((listing) => {
-                    const isEditable = listing.status == 'LISTED' || 'CLAIMED' || 'SOLD'; // Guard check: editable if LISTED or CLAIMED
+                    const isEditable = listing.status === 'LISTED' || listing.status === 'CLAIMED' || listing.status === 'SOLD';
 
                     return (
                       <div 
@@ -88,7 +89,6 @@ export default async function MyLedgerPage() {
                           </p>
                         </div>
 
-                        {/* ─── CONDITIONAL EDIT ACTION BUTTON FOR SELLER ─── */}
                         {isEditable && (
                           <div className="pt-2 border-t border-gray-100 mt-2 flex justify-end">
                             <Link 
@@ -107,7 +107,7 @@ export default async function MyLedgerPage() {
               )}
             </div>
 
-            {/* SUBSECTION B: INBOUND ACQUISITIONS (What I claimed/bought) */}
+            {/* SUBSECTION B: INBOUND ACQUISITIONS (What I claimed/bought + Verification Ratings System) */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2 text-[#063321]">
                 <ArrowDownLeft className="w-4 h-4 text-blue-600" />
@@ -119,24 +119,8 @@ export default async function MyLedgerPage() {
                   You haven't claimed or procured any material lots yet.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {myAcquisitions.map((listing) => (
-                    <div key={listing.id} className="bg-white border-2 border-emerald-800/5 rounded-2xl p-5 shadow-sm space-y-3 relative">
-                      <div className="flex justify-between items-start">
-                        <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">ACQUIRED</span>
-                        <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${listing.status === 'CLAIMED' ? 'bg-yellow-50 text-yellow-700' : 'bg-green-50 text-green-700'}`}>
-                          {listing.status}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-baseline">
-                        <span className="text-lg font-black text-[#063321]">{listing.quantityKg} KG</span>
-                        <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">{listing.wasteType}</span>
-                      </div>
-                      <p className="text-xs text-gray-500 flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-gray-400" /> {listing.location || 'No depot set'}</p>
-                      {listing.price && <p className="text-sm font-black text-[#063321] pt-1">Evaluation: ₦{listing.price.toLocaleString()}</p>}
-                    </div>
-                  ))}
-                </div>
+                /* Pass item dataset arrays into Client-Side subcomponent */
+                <SellerReviewSection acquisitions={myAcquisitions} />
               )}
             </div>
 

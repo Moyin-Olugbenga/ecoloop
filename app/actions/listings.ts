@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { requireRole, requireUser } from "@/lib/authz";
 import { v2 as cloudinary } from "cloudinary";
 import { auth } from "@/auth";
+import { buffer } from "stream/consumers";
 
 // Configure Cloudinary SDK with environment tokens
 cloudinary.config({
@@ -37,7 +38,6 @@ export async function getListings() {
   return await prisma.listing.findMany({
     where: { sellerId: session.user.id },
     include: {
-      // Include related data
     },
   });
 }
@@ -46,7 +46,7 @@ export async function getUserListing(id: string) {
         where: {
           OR: [
             { middlemanId: id },
-          ]
+          ],
         },
         orderBy: { updatedAt: 'desc' }
       });
@@ -194,7 +194,6 @@ export async function purchaseListing(listingId: string) {
   return order;
 }
 
-// --- Buyer checks out a cart of multiple listings at once ---
 export async function purchaseListings(listingIds: string[]) {
   const user = await requireUser();
 
@@ -212,7 +211,7 @@ export async function purchaseListings(listingIds: string[]) {
           data: { listingId: id, buyerId: user.id, price: listing.price },
         }),
         prisma.listing.update({
-          where: { id: id },
+          where: { id },
           data: { status: ListingStatus.SOLD },
         }),
       ]);
@@ -223,11 +222,58 @@ export async function purchaseListings(listingIds: string[]) {
   }
 
   revalidatePath("/marketplace");
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/my-ledger");
   return results;
 }
 
-// --- Trace a listing's full chain, source household(s) up through the batch ---
+// --- Verified Rating Subsystem: Create Seller Review ---
+export async function rateSeller(input: {
+  sellerId: string;
+  rating: number; // 1 to 5 Stars
+  comment?: string;
+}) {
+  const buyer = await requireUser();
+
+  if (input.rating < 1 || input.rating > 5) {
+    throw new Error("Rating score must fall strictly inside a 1-5 star framework.");
+  }
+
+  // Verification Gate: Has this buyer ever successfully purchased a completed lot from this seller?
+  const verifiedPurchase = await prisma.order.findFirst({
+    where: {
+      buyerId: buyer.id,
+      listing: {
+        sellerId: input.sellerId,
+        status: ListingStatus.SOLD,
+      },
+    },
+  });
+
+  if (!verifiedPurchase) {
+    throw new Error("Access Restricted: You can only rate sellers you have successfully conducted business with.");
+  }
+
+  // Create or update the rating score
+  const review = await prisma.review.upsert({
+    where: {
+      buyerId_sellerId: { buyerId: buyer.id, sellerId: input.sellerId },
+    },
+    create: {
+      buyerId: buyer.id,
+      sellerId: input.sellerId,
+      rating: input.rating,
+      comment: input.comment,
+    },
+    update: {
+      rating: input.rating,
+      comment: input.comment,
+    },
+  });
+
+  revalidatePath("/marketplace");
+  return review;
+}
+
 export async function getListingProvenance(listingId: string) {
   return prisma.listing.findUnique({
     where: { id: listingId },

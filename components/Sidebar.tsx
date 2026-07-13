@@ -8,17 +8,24 @@ import {
   Video
 } from 'lucide-react';
 import { User as UserType, Role } from '@/app/generated/prisma/client';
+import { signOut } from 'next-auth/react'; //
 
 export default function Sidebar({ user, role }: { user: UserType; role?: Role }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
   const navItems = [
+    { name: 'Dashboard', href: '/dashboard', icon: User },
     { name: 'Marketplace Feed', href: '/marketplace', icon: ShoppingBag },
     { name: 'My Ledger', href: '/dashboard/my-ledger', icon: FolderSync },
     { name: 'My Profile', href: `/users/${user?.id}?role=${role}`, icon: User },
     { name: 'My learning', href: `/learn`, icon: Video },
   ];
+
+  const handleDisconnect = async () => {
+    // This clears the session cookie and redirects to the sign-in/landing page instantly
+    await signOut({ callbackUrl: '/signin' });
+  };
 
   return (
     <>
@@ -79,10 +86,13 @@ export default function Sidebar({ user, role }: { user: UserType; role?: Role })
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Node Secure: 2026 Sync</span>
           </div>
-          <Link href="/signin" className="w-full flex items-center justify-center space-x-2 bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-white font-bold py-3 rounded-xl text-xs transition-all uppercase tracking-widest">
-            <LogOut className="w-3.5 h-3.5" />
+          <button
+            onClick={handleDisconnect}
+            className="w-full flex items-center space-x-2.5 px-4 py-3 bg-red-950/20 hover:bg-red-900/30 border border-red-900/30 hover:border-red-500/40 rounded-xl text-red-200 hover:text-red-100 font-black uppercase tracking-wider text-[11px] transition-all cursor-pointer group"
+            >
+            <LogOut className="w-4 h-4 text-red-400 group-hover:-translate-x-0.5 transition-transform" />
             <span>Disconnect</span>
-          </Link>
+          </button>
         </div>
       </aside>
     </>

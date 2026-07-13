@@ -19,6 +19,7 @@ import {
   BarChart3,
   ShieldCheck
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
 export default function MainPage() {
   // Simple state for FAQ toggles
@@ -27,6 +28,19 @@ export default function MainPage() {
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
+
+  const LiveEcoMap = dynamic(
+  () => import('@/components/LiveEcoMap'),
+  { 
+    ssr: false, // Disables server compilation tracking entirely for map vectors
+    loading: () => (
+      <div className="w-full h-[510px] bg-white border border-gray-200 rounded-2xl flex flex-col items-center justify-center text-xs text-gray-400 font-bold space-y-2 shadow-sm">
+        <div className="w-6 'h-6' border-2 border-[#063321] border-t-transparent rounded-full animate-spin" />
+        <span>Initializing Geospatial Coordinate Nodes...</span>
+      </div>
+    )
+  }
+);
 
   return (
     <div className="min-h-screen bg-[#F8FBF9] text-[#1A2420] font-sans antialiased">
@@ -280,11 +294,9 @@ export default function MainPage() {
               </button>
             </div>
 
-            <div className="lg:col-span-8 bg-gray-100 relative flex items-center justify-center p-8 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] min-h-[300px]">
+            <div className="lg:col-span-8 bg-gray-100 relative flex items-center justify-center p-2 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] min-h-[300px]">
               <div className="relative text-center z-10 space-y-2">
-                <MapPin className="w-12 h-12 text-red-500 mx-auto animate-bounce" />
-                <p className="text-sm font-bold text-[#1A2420]">Mapbox Canvas Framework Frame</p>
-                <p className="text-xs text-gray-400 max-w-xs mx-auto">Dynamic map layers load seamlessly in client instances via integrated PostGIS mapping models.</p>
+                <LiveEcoMap />
               </div>
             </div>
           </div>

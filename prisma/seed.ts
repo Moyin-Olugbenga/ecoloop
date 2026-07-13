@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { PrismaClient, Role, WasteType, ListingStatus } from "../app/generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
@@ -6,9 +9,13 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("Seeding...");
+  console.log("Initializing local database cleanup...");
 
-  // Demo password for every seeded user — fine for a hackathon demo, never do this in prod
+  // 🛡️ ANTI-CRASH SEQUENCE: Truncate cascading dependencies safely via Raw SQL
+  // This clears all past listings, ratings, and orders instantly so seeding never errors out.
+  await prisma.$executeRawUnsafe(`TRUNCATE TABLE "Review", "Order", "TutorialView", "Tutorial", "Listing", "SensorReading", "DumpSite", "User" CASCADE;`);
+  console.log("Database cleared completely. Deploying seed mock payloads...");
+
   const demoPassword = await bcrypt.hash("password123", 10);
 
   // --- Users ---
@@ -77,7 +84,7 @@ async function main() {
     },
   });
 
-  // --- Dump Sites (fixed coordinates, e.g. around Ile-Ife) ---
+  // --- Dump Sites ---
   const site1 = await prisma.dumpSite.create({
     data: { name: "Sabo Dump Site", lat: 7.4905, lng: 4.5521, lga: "Ife Central LGA", pollutionScore: 72 },
   });
@@ -88,7 +95,7 @@ async function main() {
     data: { name: "OAU Estate Dump", lat: 7.5182, lng: 4.5284, lga: "Ife Central LGA", pollutionScore: 60 },
   });
 
-  // --- Simulated sensor readings (a short history per site) ---
+  // --- Simulated sensor readings ---
   for (const site of [site1, site2, site3]) {
     for (let i = 0; i < 5; i++) {
       const score = Math.max(
@@ -99,7 +106,7 @@ async function main() {
         data: {
           siteId: site.id,
           score,
-          createdAt: new Date(Date.now() - (5 - i) * 1000 * 60 * 60), // spaced hourly
+          createdAt: new Date(Date.now() - (5 - i) * 1000 * 60 * 60),
         },
       });
     }
@@ -152,7 +159,7 @@ async function main() {
 
   const batch = await prisma.listing.create({
     data: {
-      sellerId: middleman.id, // middleman relists as the "seller" of the sorted batch
+      sellerId: middleman.id,
       wasteType: WasteType.PLASTIC,
       quantityKg: 20,
       price: 6500,
@@ -173,22 +180,33 @@ async function main() {
     data: { listingId: batch.id, buyerId: buyer.id, price: 6500 },
   });
 
+  // 🛡️ ANTI-THEFT PROTOCOL INTEGRATION: Seed a past completed rating matching the order history criteria
+  await prisma.review.create({
+    data: {
+      buyerId: buyer.id,
+      sellerId: middleman.id,
+      rating: 5,
+      comment: "Excellent sorting batch purity. Transparent transaction.",
+    }
+  });
+
   // --- Tutorials ---
   const tutorial1 = await prisma.tutorial.create({
     data: {
       title: "Sorting Plastic vs E-Waste at Home",
       description: "A quick guide for households to separate resellable waste correctly.",
-      videoUrl: "https://example.com/videos/sorting-basics.mp4",
+      videoUrl: "https://www.youtube.com/embed/4v5WOkVtx4k?si=z82F_WLmUL5ik9Vu", // Use our updated clean YouTube embed link!
       thumbnailUrl: "https://example.com/thumbs/sorting-basics.jpg",
       category: WasteType.PLASTIC,
       uploadedById: admin.id,
     },
   });
+
   const tutorial2 = await prisma.tutorial.create({
     data: {
       title: "Upcycling E-Waste into School Projects",
       description: "How kids can turn old electronics into science fair projects.",
-      videoUrl: "https://example.com/videos/upcycling-ewaste.mp4",
+      videoUrl: "https://www.youtube.com/embed/4v5WOkVtx4k?si=z82F_WLmUL5ik9Vu",
       thumbnailUrl: "https://example.com/thumbs/upcycling-ewaste.jpg",
       category: WasteType.EWASTE,
       uploadedById: admin.id,
@@ -205,17 +223,18 @@ async function main() {
     data: { tutorialId: tutorial2.id, userId: school.id },
   });
 
-  console.log("Seed complete:", {
-    users: 5,
+  console.log("Seed completely built and written successfully:", {
+    users: 6,
     dumpSites: 3,
     listings: 4,
     tutorials: 2,
+    reviews: 1
   });
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("Critical seeding exception thrown:", e);
     process.exit(1);
   })
   .finally(async () => {

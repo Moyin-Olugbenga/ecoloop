@@ -4,6 +4,7 @@ import MarketplaceView from "./MarketplaceView";
 import { requireUser } from "@/lib/authz";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "../actions/user";
+import { CartProvider } from "@/lib/cart-context";
 
 export const dynamic = "force-dynamic";
 
@@ -32,11 +33,14 @@ export default async function MarketplacePage() {
       : Promise.resolve([]),
   ]);
   return (
-    <MarketplaceView
-      user={user}
-      rawListings={rawListings}
-      batchListings={batchListings}
-      claimedForBatching={claimedForBatching}
-    />
+      <CartProvider>
+        <MarketplaceView
+        user={user}
+        rawListings={rawListings}
+        batchListings={batchListings}
+        claimedForBatching={claimedForBatching}
+        />
+      </CartProvider>
+    
   );
 }
