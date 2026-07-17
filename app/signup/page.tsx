@@ -58,9 +58,11 @@ export default function SignUp() {
       <div className="min-h-screen bg-[#F8FBF9] flex items-center justify-center p-4 font-sans">
         <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl p-8 shadow-xl text-center space-y-3">
           <h1 className="text-2xl font-black text-[#063321]">Check your email</h1>
-          <p className="text-sm text-gray-500">
+          {/* <p className="text-sm text-gray-500">
             We sent an activation link to <span className="font-bold">{form.email}</span>. Click it to activate your account, then sign in.
-          </p>
+          </p> */}
+          <p className="text-sm text-gray-500">
+            Account successfully created.</p>
           <a href="/signin" className="inline-block mt-2 text-sm font-bold text-[#063321] hover:underline">
             Go to sign in
           </a>

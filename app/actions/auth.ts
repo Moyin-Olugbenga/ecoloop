@@ -31,7 +31,8 @@ export async function signUp(input: {
       password: hashed,
       role: input.role,
       lga: input.lga,
-      phone: input.phone,
+      phone: input.phone, 
+      emailVerified: new Date()
     },
   });
 
@@ -40,7 +41,7 @@ export async function signUp(input: {
 
   await sendEmail({
     to: user.email,
-    subject: "Activate your TrashVill account",
+    subject: "Activate your Ecoloop account",
     html: activationEmailHtml(activationUrl),
   });
 
